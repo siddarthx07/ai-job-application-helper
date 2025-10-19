@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoFiller - Smart Cover Letter Generator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <span class="icon">🤖</span>
+        <h1>AutoFiller</h1>
+      </div>
+      <div class="status" id="status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Checking...</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <!-- Resume Section -->
+      <div class="section">
+        <h3>📄 Your Resume</h3>
+        <textarea 
+          id="resumeText" 
+          placeholder="Paste your resume text here..."
+          rows="6"
+        ></textarea>
+        <div class="section-actions">
+          <button id="saveResume" class="btn btn-secondary">Save Resume</button>
+          <span class="save-status" id="resumeSaveStatus"></span>
+        </div>
+      </div>
+
+      <!-- Job Details Section -->
+      <div class="section">
+        <h3>💼 Job Details</h3>
+        <div class="job-info" id="jobInfo">
+          <div class="job-field">
+            <label>Company:</label>
+            <span id="companyName">Detecting...</span>
+          </div>
+          <div class="job-field">
+            <label>Position:</label>
+            <span id="jobTitle">Detecting...</span>
+          </div>
+          <div class="job-field">
+            <label>Cover Letter Field:</label>
+            <span id="coverLetterStatus">Checking...</span>
+          </div>
+        </div>
+        <button id="refreshJobDetails" class="btn btn-secondary">🔄 Refresh</button>
+      </div>
+
+      <!-- Preferences Section -->
+      <div class="section">
+        <h3>⚙️ Preferences</h3>
+        <div class="preferences">
+          <div class="pref-group">
+            <label for="toneSelect">Tone:</label>
+            <select id="toneSelect">
+              <option value="professional">Professional</option>
+              <option value="enthusiastic">Enthusiastic</option>
+              <option value="technical">Technical</option>
+              <option value="creative">Creative</option>
+            </select>
+          </div>
+          <div class="pref-group">
+            <label for="lengthSelect">Length:</label>
+            <select id="lengthSelect">
+              <option value="short">Short</option>
+              <option value="medium">Medium</option>
+              <option value="long">Long</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Section -->
+      <div class="section">
+        <div class="action-buttons">
+          <button id="generateButton" class="btn btn-primary">
+            <span class="btn-icon">✨</span>
+            Generate Cover Letter
+          </button>
+          <button id="downloadButton" class="btn btn-secondary" style="display: none;">
+            <span class="btn-icon">📥</span>
+            Download as HTML
+          </button>
+        </div>
+        <div class="loading" id="loading" style="display: none;">
+          <div class="spinner"></div>
+          <span>Generating your personalized cover letter...</span>
+        </div>
+      </div>
+
+      <!-- Preview Section -->
+      <div class="section" id="previewSection" style="display: none;">
+        <h3>📝 Generated Cover Letter</h3>
+        <div class="preview-container">
+          <textarea id="coverLetterPreview" rows="10" readonly></textarea>
+          <div class="preview-actions">
+            <button id="editButton" class="btn btn-secondary">✏️ Edit</button>
+            <button id="fillButton" class="btn btn-primary">📝 Fill Form</button>
+            <button id="downloadFinalButton" class="btn btn-secondary">💾 Download</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="api-status">
+        <span id="apiStatus">API: Not configured</span>
+      </div>
+      <div class="model-info">
+        <span>Gemini 2.5 Flash</span>
+      </div>
+      <div class="version">v1.0.0</div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

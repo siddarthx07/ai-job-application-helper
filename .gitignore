@@ -1,0 +1,15 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Build / distribution
+dist/
+build/
+
+resume.txt
+config/config.js

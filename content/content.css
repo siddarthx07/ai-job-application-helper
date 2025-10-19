@@ -1,0 +1,87 @@
+/* Styles for AutoFiller extension content */
+
+/* Loading spinner for when generating cover letter */
+.autofiller-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.autofiller-spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4CAF50;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: autofiller-spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes autofiller-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Highlight animation for detected fields */
+.autofiller-highlight {
+  animation: autofiller-glow 2s ease-in-out;
+}
+
+@keyframes autofiller-glow {
+  0% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+  50% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+}
+
+/* Success message styling */
+.autofiller-success {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4CAF50;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 10001;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  animation: autofiller-slideIn 0.3s ease-out;
+}
+
+@keyframes autofiller-slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Error message styling */
+.autofiller-error {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #f44336;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 10001;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  animation: autofiller-slideIn 0.3s ease-out;
+}

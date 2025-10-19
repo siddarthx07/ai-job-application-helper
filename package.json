@@ -1,0 +1,11 @@
+{
+  "name": "autofiller-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for auto-generating cover letters",
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "scripts": {
+    "build": "node scripts/build-config.js"
+  }
+}

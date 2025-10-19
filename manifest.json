@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "AutoFiller - Smart Cover Letter Generator",
+  "version": "1.0.0",
+  "description": "Auto-generate tailored cover letters using AI for job applications",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "downloads"
+  ],
+  
+  "host_permissions": [
+    "https://www.glassdoor.com/*",
+    "https://job-boards.greenhouse.io/*",
+    "https://boards.greenhouse.io/*",
+    "https://*.greenhouse.io/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.glassdoor.com/*",
+        "https://job-boards.greenhouse.io/*",
+        "https://boards.greenhouse.io/*",
+        "https://*.greenhouse.io/*"
+      ],
+      "js": ["config/config.js", "content/content.js"],
+      "css": ["content/content.css"]
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "AutoFiller",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["https://www.glassdoor.com/*"]
+    }
+  ]
+}
