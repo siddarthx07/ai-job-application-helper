@@ -490,30 +490,62 @@ class JobSiteAutofiller {
     // Handle "Enter manually" button
     if (this.coverLetterField.tagName === 'BUTTON' && 
         this.coverLetterField.textContent?.includes('Enter manually')) {
-      
       console.log('Clicking "Enter manually" button...');
-      this.coverLetterField.click();
+      console.log('Button element:', this.coverLetterField);
+      console.log('Button disabled?', this.coverLetterField.disabled);
       
+      // Ensure button is in view
+      try {
+        this.coverLetterField.scrollIntoView({ block: 'center' });
+        await new Promise(resolve => setTimeout(resolve, 100)); // Wait for scroll
+      } catch (_) {}
+
+      // Use the reliable data-testid approach (Method 5 - the one that works!)
+      console.log('Clicking "Enter manually" button using data-testid...');
+      try {
+        // Find the button using the most reliable selector
+        const buttonByTestId = document.querySelector('button[data-testid="cover_letter-text"]');
+        if (buttonByTestId) {
+          console.log('Found button by data-testid, clicking...');
+          
+          // Try multiple click approaches on the fresh element
+          buttonByTestId.click();
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          buttonByTestId.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Try focus and click
+          buttonByTestId.focus();
+          buttonByTestId.click();
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          console.log('Button click completed successfully');
+        } else {
+          console.log('Button not found by data-testid');
+          throw new Error('Could not find "Enter manually" button');
+        }
+      } catch (e) {
+        console.log('Button click failed:', e);
+        throw new Error('Failed to click "Enter manually" button');
+      }
+
       // Wait for textarea to appear after clicking and get it
-      const textarea = await this.waitForTextarea();
+      console.log('⏳ Waiting for textarea to appear after clicking button...');
+      const textarea = await this.waitForTextarea(15000); // Increased timeout to 15 seconds
       if (textarea) {
         this.coverLetterField = textarea;
-        console.log('Found textarea after clicking Enter manually:', textarea.id);
+        console.log('✅ Found textarea after clicking Enter manually:', textarea.id || textarea.name || textarea.className);
       } else {
         throw new Error('No textarea appeared after clicking "Enter manually"');
       }
     }
 
-    // Now fill the textarea
     if (this.coverLetterField.tagName === 'TEXTAREA') {
-      // Clear existing content
-      this.coverLetterField.value = '';
-      this.coverLetterField.textContent = '';
-
-      // Focus the field
+      // Focus the textarea before typing
       this.coverLetterField.focus();
 
-      // Simulate typing for better compatibility
+      // Insert text
       await this.typeText(this.coverLetterField, coverLetterText);
 
       // Trigger change events
@@ -528,24 +560,126 @@ class JobSiteAutofiller {
   }
 
   async waitForTextarea(maxWait = 3000) {
-    const startTime = Date.now();
-    while (Date.now() - startTime < maxWait) {
-      // Look for the specific textarea that appears after clicking "Enter manually"
-      const textarea = document.querySelector(
-        'textarea[id="cover_letter_text"], ' +
-        'textarea[name="cover_letter"], ' +
-        'textarea[id*="cover_letter"], ' +
-        'textarea[class*="input--outside-label"], ' +
-        'textarea[aria-describedby*="cover_letter"], ' +
-        'div[class*="file-upload"] textarea'
-      );
-      if (textarea) {
-        console.log('Found textarea:', textarea.id || textarea.name || textarea.className);
-        return textarea;
+    console.log(`🔍 Starting textarea detection with ${maxWait}ms timeout...`);
+    const selectors = [
+      'textarea#cover_letter_text',
+      'textarea[name="cover_letter"]',
+      'textarea[id*="cover_letter"]',
+      'textarea[aria-describedby*="cover_letter"]'
+    ];
+
+    console.log('🎯 Testing selectors:', selectors);
+
+    const queryForTextarea = () => {
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (el) {
+          console.log(`✅ Found textarea with selector: ${sel}`, {
+            id: el.id,
+            name: el.name,
+            className: el.className,
+            placeholder: el.placeholder,
+            ariaLabel: el.getAttribute('aria-label'),
+            visible: el.offsetParent !== null,
+            display: window.getComputedStyle(el).display
+          });
+          return el;
+        } else {
+          console.log(`❌ No element found for selector: ${sel}`);
+        }
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
+      return null;
+    };
+
+    // Immediate check
+    console.log('🔍 Immediate check for textarea...');
+    let found = queryForTextarea();
+    if (found) {
+      console.log('✅ Found textarea (immediate):', found.id || found.name || found.className);
+      return found;
     }
-    throw new Error('Textarea did not appear within timeout');
+
+    // Debug: Check if any textareas exist on the page
+    const allTextareas = document.querySelectorAll('textarea');
+    console.log(`🔍 Found ${allTextareas.length} textareas on page:`, 
+      Array.from(allTextareas).map(t => ({
+        id: t.id,
+        name: t.name,
+        className: t.className,
+        visible: t.offsetParent !== null,
+        display: window.getComputedStyle(t).display,
+        placeholder: t.placeholder,
+        parentElement: t.parentElement?.className,
+        value: t.value ? t.value.substring(0, 50) + '...' : ''
+      }))
+    );
+
+    // If we found textareas, check if any might be the cover letter field
+    if (allTextareas.length > 0) {
+      console.log('🔍 Checking existing textareas for cover letter field...');
+      for (const textarea of allTextareas) {
+        const isCoverLetter = textarea.id === 'cover_letter_text' || 
+                             textarea.name === 'cover_letter' ||
+                             textarea.id?.includes('cover_letter') ||
+                             textarea.name?.includes('cover_letter') ||
+                             textarea.className?.includes('cover') ||
+                             textarea.parentElement?.className?.includes('cover') ||
+                             textarea.parentElement?.className?.includes('file-upload');
+        
+        if (isCoverLetter) {
+          console.log('✅ Found potential cover letter textarea:', {
+            id: textarea.id,
+            name: textarea.name,
+            className: textarea.className,
+            parentClass: textarea.parentElement?.className,
+            visible: textarea.offsetParent !== null
+          });
+          return textarea;
+        }
+      }
+    }
+
+    // Observe DOM mutations for faster detection
+    const start = Date.now();
+    console.log('🔍 Setting up MutationObserver and polling...');
+    return await new Promise((resolve, reject) => {
+      let checkCount = 0;
+      
+      const observer = new MutationObserver((mutations) => {
+        checkCount++;
+        console.log(`🔍 MutationObserver check #${checkCount}, mutations: ${mutations.length}`);
+        const el = queryForTextarea();
+        if (el) {
+          observer.disconnect();
+          console.log('✅ Found textarea via MutationObserver:', el.id || el.name || el.className);
+          resolve(el);
+        }
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      // Poll as a backup (handles attribute changes)
+      const interval = setInterval(() => {
+        checkCount++;
+        const elapsed = Date.now() - start;
+        console.log(`🔍 Polling check #${checkCount}, elapsed: ${elapsed}ms`);
+        
+        const el = queryForTextarea();
+        if (el) {
+          clearInterval(interval);
+          observer.disconnect();
+          console.log('✅ Found textarea via polling:', el.id || el.name || el.className);
+          resolve(el);
+        }
+        
+        if (elapsed >= maxWait) {
+          clearInterval(interval);
+          observer.disconnect();
+          console.log(`❌ Timeout reached after ${elapsed}ms`);
+          reject(new Error(`Textarea did not appear within ${maxWait}ms timeout`));
+        }
+      }, 200); // Increased polling interval to 200ms
+    });
   }
 
   async typeText(element, text) {

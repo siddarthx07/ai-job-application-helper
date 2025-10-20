@@ -93,22 +93,11 @@ const CONFIG = {
       // MOST IMPORTANT: The "Enter manually" button that must be detected first
       'button[data-testid="cover_letter-text"]', // This is the button from HTML!
       'button[class*="btn-pill"][data-testid*="cover"]',
-      // The textarea that appears after clicking the button
+      // The textarea that appears after clicking the button - ONLY cover letter specific
       'textarea[id="cover_letter_text"]',
       'textarea[name="cover_letter"]',
       'textarea[id*="cover_letter"]',
-      'textarea[class*="input--outside-label"]',
-      'textarea[aria-describedby*="cover_letter"]',
-      'textarea[placeholder*="cover letter"]',
-      'textarea[placeholder*="Cover Letter"]',
-      'textarea[aria-label*="cover letter"]',
-      'textarea[aria-label*="Cover Letter"]',
-      'textarea[data-qa*="cover-letter"]',
-      'textarea[class*="cover-letter"]',
-      'textarea[name*="additional_information"]',
-      'textarea[placeholder*="Why are you interested"]',
-      'textarea[placeholder*="Tell us about yourself"]',
-      'textarea[placeholder*="additional information"]'
+      'textarea[aria-describedby*="cover_letter"]'
     ],
     jobTitle: [
       'h1[class*="job-title"]',
