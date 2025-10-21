@@ -178,62 +178,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keep message channel open for async response
   }
   
-  if (request.action === 'downloadPDF') {
-    downloadCoverLetterAsPDF(request.content, request.filename);
-    sendResponse({ success: true });
-  }
 });
 
-// PDF Download functionality
-async function downloadCoverLetterAsPDF(content, filename = 'cover-letter.pdf') {
-  try {
-    // Create HTML content for PDF
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Cover Letter</title>
-        <style>
-          body {
-            font-family: 'Times New Roman', serif;
-            font-size: 12pt;
-            line-height: 1.6;
-            margin: 1in;
-            color: #333;
-          }
-          .header {
-            margin-bottom: 2em;
-          }
-          .content {
-            white-space: pre-wrap;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="content">${content}</div>
-      </body>
-      </html>
-    `;
-    
-    // Create blob and download
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    
-    await chrome.downloads.download({
-      url: url,
-      filename: filename.replace('.pdf', '.html'), // Browser will handle as HTML first
-      saveAs: true
-    });
-    
-    // Clean up
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    
-  } catch (error) {
-    console.error('Error downloading cover letter:', error);
-    throw error;
-  }
-}
 
 // Storage helpers
 const storage = {

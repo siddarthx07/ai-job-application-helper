@@ -469,10 +469,9 @@ class JobSiteAutofiller {
         await this.fillCoverLetter(request.coverLetter);
         sendResponse({ success: true, action: 'filled' });
       } else {
-        // Download scenario
-        console.log('📥 Using download mode (no cover letter field found)');
-        await this.downloadCoverLetter(request.coverLetter);
-        sendResponse({ success: true, action: 'downloaded' });
+        // No cover letter field found
+        console.log('❌ No cover letter field found');
+        sendResponse({ success: false, error: 'No cover letter field found on this page' });
       }
     } catch (error) {
       console.error('Error handling fill request:', error);
@@ -697,16 +696,6 @@ class JobSiteAutofiller {
     element.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  async downloadCoverLetter(coverLetterText) {
-    // Send message to background script to handle download
-    chrome.runtime.sendMessage({
-      action: 'downloadPDF',
-      content: coverLetterText,
-      filename: `cover-letter-${this.jobDetails.company || 'job'}-${Date.now()}.html`
-    });
-
-    this.showSuccessMessage('Cover letter downloaded! Check your downloads folder.');
-  }
 
   showSuccessMessage(message) {
     const successDiv = document.createElement('div');

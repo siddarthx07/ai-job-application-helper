@@ -35,12 +35,10 @@ class AutoFillerPopup {
 
     // Main actions
     document.getElementById('generateButton').addEventListener('click', () => this.generateCoverLetter());
-    document.getElementById('downloadButton').addEventListener('click', () => this.downloadCoverLetter());
 
     // Preview actions
     document.getElementById('editButton').addEventListener('click', () => this.enableEditing());
     document.getElementById('fillButton').addEventListener('click', () => this.fillCoverLetter());
-    document.getElementById('downloadFinalButton').addEventListener('click', () => this.downloadCoverLetter());
   }
 
   async loadSavedData() {
@@ -126,8 +124,8 @@ class AutoFillerPopup {
       statusElement.textContent = '✅ Found (Auto-fill)';
       statusElement.className = 'text-success';
     } else {
-      statusElement.textContent = '📥 Not found (Download)';
-      statusElement.className = 'text-warning';
+      statusElement.textContent = '❌ Not found';
+      statusElement.className = 'text-error';
     }
   }
 
@@ -298,11 +296,7 @@ class AutoFillerPopup {
       });
 
       if (response.success) {
-        if (response.action === 'filled') {
-          this.showMessage('Cover letter filled successfully!', 'success');
-        } else if (response.action === 'downloaded') {
-          this.showMessage('Cover letter downloaded to your computer!', 'success');
-        }
+        this.showMessage('Cover letter filled successfully!', 'success');
       } else {
         throw new Error(response.error || 'Failed to fill cover letter');
       }
@@ -312,25 +306,6 @@ class AutoFillerPopup {
     }
   }
 
-  async downloadCoverLetter() {
-    if (!this.generatedCoverLetter) {
-      this.showMessage('No cover letter to download', 'error');
-      return;
-    }
-
-    try {
-      await chrome.runtime.sendMessage({
-        action: 'downloadPDF',
-        content: this.generatedCoverLetter,
-        filename: `cover-letter-${this.jobDetails.company || 'job'}-${Date.now()}.html`
-      });
-      
-      this.showMessage('Cover letter downloaded!', 'success');
-    } catch (error) {
-      console.error('Error downloading cover letter:', error);
-      this.showMessage('Failed to download cover letter', 'error');
-    }
-  }
 
   showLoading(show) {
     document.getElementById('loading').style.display = show ? 'flex' : 'none';
