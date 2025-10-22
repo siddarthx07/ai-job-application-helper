@@ -91,7 +91,7 @@ class GeminiAPI {
     const lengthInstructions = {
       'short': 'Keep it concise, 2-3 paragraphs, around 200-300 words',
       'medium': 'Write 3-4 paragraphs, around 350-500 words',
-      'long': 'Write 4-6 detailed paragraphs, around 600-800 words'
+      'long': 'Write 4-5 detailed paragraphs, around 450-550 words'
     };
     
     const toneInstructions = {
