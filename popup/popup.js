@@ -39,6 +39,7 @@ class AutoFillerPopup {
     // Preview actions
     document.getElementById('editButton').addEventListener('click', () => this.enableEditing());
     document.getElementById('fillButton').addEventListener('click', () => this.fillCoverLetter());
+    document.getElementById('clearButton').addEventListener('click', () => this.clearCoverLetter());
   }
 
   async loadSavedData() {
@@ -55,6 +56,13 @@ class AutoFillerPopup {
         const prefs = prefResponse.preferences;
         document.getElementById('toneSelect').value = prefs.tone || 'professional';
         document.getElementById('lengthSelect').value = prefs.length || 'medium';
+      }
+
+      // Load saved cover letter
+      const coverLetterResponse = await chrome.runtime.sendMessage({ action: 'getCoverLetter' });
+      if (coverLetterResponse.success && coverLetterResponse.coverLetter) {
+        this.generatedCoverLetter = coverLetterResponse.coverLetter;
+        this.showPreview(coverLetterResponse.coverLetter);
       }
     } catch (error) {
       console.error('Error loading saved data:', error);
@@ -239,6 +247,13 @@ class AutoFillerPopup {
       if (response.success) {
         this.generatedCoverLetter = response.coverLetter;
         this.showPreview(response.coverLetter);
+        
+        // Save cover letter to storage
+        await chrome.runtime.sendMessage({ 
+          action: 'saveCoverLetter', 
+          coverLetter: response.coverLetter 
+        });
+        
         this.showMessage('Cover letter generated successfully!', 'success');
       } else {
         throw new Error(response.error || 'Failed to generate cover letter');
@@ -272,10 +287,20 @@ class AutoFillerPopup {
     document.getElementById('editButton').onclick = () => this.saveEdits();
   }
 
-  saveEdits() {
+  async saveEdits() {
     const preview = document.getElementById('coverLetterPreview');
     this.generatedCoverLetter = preview.value;
     preview.readOnly = true;
+    
+    // Save edited cover letter to storage
+    try {
+      await chrome.runtime.sendMessage({ 
+        action: 'saveCoverLetter', 
+        coverLetter: this.generatedCoverLetter 
+      });
+    } catch (error) {
+      console.error('Error saving edited cover letter:', error);
+    }
     
     document.getElementById('editButton').textContent = '✏️ Edit';
     document.getElementById('editButton').onclick = () => this.enableEditing();
@@ -302,6 +327,33 @@ class AutoFillerPopup {
       }
     } catch (error) {
       console.error('Error filling cover letter:', error);
+      this.showMessage(`Error: ${error.message}`, 'error');
+    }
+  }
+
+  async clearCoverLetter() {
+    if (!this.generatedCoverLetter) {
+      this.showMessage('No cover letter to clear', 'error');
+      return;
+    }
+
+    // Confirm before clearing
+    if (!confirm('Are you sure you want to clear the generated cover letter? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      // Clear from storage
+      await chrome.runtime.sendMessage({ action: 'clearCoverLetter' });
+      
+      // Clear from memory and UI
+      this.generatedCoverLetter = '';
+      document.getElementById('coverLetterPreview').value = '';
+      document.getElementById('previewSection').style.display = 'none';
+      
+      this.showMessage('Cover letter cleared successfully!', 'success');
+    } catch (error) {
+      console.error('Error clearing cover letter:', error);
       this.showMessage(`Error: ${error.message}`, 'error');
     }
   }

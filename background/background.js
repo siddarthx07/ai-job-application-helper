@@ -202,6 +202,19 @@ const storage = {
       tone: CONFIG.DEFAULT_TONE,
       length: CONFIG.DEFAULT_LENGTH
     };
+  },
+  
+  async saveCoverLetter(coverLetter) {
+    await chrome.storage.local.set({ coverLetter });
+  },
+  
+  async getCoverLetter() {
+    const result = await chrome.storage.local.get(['coverLetter']);
+    return result.coverLetter || '';
+  },
+  
+  async clearCoverLetter() {
+    await chrome.storage.local.remove(['coverLetter']);
   }
 };
 
@@ -231,6 +244,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getPreferences') {
     storage.getPreferences().then(preferences => {
       sendResponse({ success: true, preferences });
+    });
+    return true;
+  }
+  
+  if (request.action === 'saveCoverLetter') {
+    storage.saveCoverLetter(request.coverLetter).then(() => {
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+  
+  if (request.action === 'getCoverLetter') {
+    storage.getCoverLetter().then(coverLetter => {
+      sendResponse({ success: true, coverLetter });
+    });
+    return true;
+  }
+  
+  if (request.action === 'clearCoverLetter') {
+    storage.clearCoverLetter().then(() => {
+      sendResponse({ success: true });
     });
     return true;
   }
