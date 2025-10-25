@@ -8,7 +8,7 @@ importScripts('../scripts/setup-resume.js');
 // Initialize extension on install
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
-    console.log('🚀 AutoFiller Extension installed');
+    console.log(`🚀 AutoFiller Extension installed at ${new Date().toLocaleString()}`);
     // Pre-load resume template
     const RESUME_TEXT = `[Your Name]
 [Your Email]
@@ -73,7 +73,9 @@ class GeminiAPI {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Gemini API Error: ${errorData.error?.message || response.statusText}`);
+        const errorMessage = errorData.error?.message || response.statusText;
+        console.error('Gemini API Error Details:', errorData);
+        throw new Error(`API Error (${response.status}): ${errorMessage}`);
       }
 
       const data = await response.json();
