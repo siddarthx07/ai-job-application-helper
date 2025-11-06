@@ -47,46 +47,6 @@ const CONFIG = {
   // Extension Settings
   DEFAULT_TONE: 'professional', // professional, enthusiastic, technical, creative
   DEFAULT_LENGTH: 'medium', // short, medium, long
-  
-  // Glassdoor Selectors (may need updates if site changes)
-  GLASSDOOR_SELECTORS: {
-    coverLetterTextarea: [
-      'textarea[name="coverLetter"]',
-      'textarea[placeholder*="cover letter"]',
-      'textarea[placeholder*="Cover Letter"]',
-      'textarea[id*="coverLetter"]',
-      'textarea[class*="coverLetter"]',
-      'textarea[data-test*="cover"]',
-      'textarea[aria-label*="cover"]',
-      'textarea[aria-label*="Cover"]'
-    ],
-    jobTitle: [
-      '[data-test="job-title"]',
-      '.jobTitle',
-      'h1[data-test="job-title"]',
-      '.css-17x2pwl', // Common Glassdoor class
-      '[class*="JobDetails_jobTitle"]',
-      'h1[class*="jobTitle"]',
-      '.job-title'
-    ],
-    companyName: [
-      '[data-test="employer-name"]',
-      '.employerName',
-      '[class*="EmployerProfile_employerName"]',
-      'a[data-test="employer-name"]',
-      '[data-test="employer-name"] span',
-      '.company-name'
-    ],
-    jobDescription: [
-      '[data-test="job-description"]',
-      '.jobDescriptionContent',
-      '[class*="JobDetails_jobDescription"]',
-      '.desc',
-      '[class*="jobDescription"]',
-      '.job-description-content'
-    ]
-  },
-  
   // Greenhouse Selectors - CRITICAL FOR GREENHOUSE FUNCTIONALITY
   GREENHOUSE_SELECTORS: {
     coverLetterTextarea: [

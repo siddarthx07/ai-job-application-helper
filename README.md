@@ -1,16 +1,15 @@
 # AutoFiller - Smart Cover Letter Generator
 
-A Chrome extension that automatically generates tailored cover letters using Google's Gemini AI for job applications on Glassdoor and Greenhouse.
+A Chrome extension that automatically generates tailored cover letters using Google's Gemini AI for job applications on Greenhouse.
 
 ## Features
 
 - 🤖 **AI-Powered Generation**: Uses Gemini AI to create personalized cover letters
-- 📝 **Auto-Fill**: Automatically fills cover letter fields on Glassdoor and Greenhouse
+- 📝 **Auto-Fill**: Automatically fills cover letter fields on Greenhouse application forms
 - 📥 **Download Option**: Downloads cover letters as HTML files when auto-fill isn't available
 - 💾 **Resume Storage**: Saves your resume for reuse
 - ⚙️ **Customizable**: Choose tone (professional, enthusiastic, technical, creative) and length
-- 🎯 **Smart Detection**: Automatically extracts job details from supported job sites
-- 🌐 **Multi-Site Support**: Works on Glassdoor and Greenhouse job boards
+- 🎯 **Smart Detection**: Automatically extracts job details from supported Greenhouse job sites
 
 ## Setup Instructions
 
@@ -52,9 +51,9 @@ npm run build
 3. Click "Save Resume"
 
 ### Step 2: Navigate to a Job
-1. Go to Glassdoor or Greenhouse and find a job you want to apply for
-2. Open the job application page
-3. The extension will automatically detect job details and the site type
+1. Go to a Greenhouse-powered job application page
+2. Open the job application form
+3. The extension will automatically detect job details and confirm Greenhouse support
 
 ### Step 3: Generate Cover Letter
 1. Click the extension icon
@@ -69,8 +68,7 @@ npm run build
 ## Supported Scenarios
 
 ### ✅ Auto-Fill (Preferred)
-- Glassdoor pages with "Enter manually" cover letter text areas
-- Greenhouse job application forms with cover letter fields
+- Greenhouse job application forms with a cover letter field (including the "Enter manually" textarea)
 - Automatically fills the generated cover letter into the form
 
 ### ✅ Download & Upload
@@ -85,7 +83,7 @@ npm run build
 - Reload the extension after making changes
 
 ### "Unsupported site" Warning
-- The extension works on Glassdoor and Greenhouse job pages
+- The extension works on Greenhouse job pages
 - Navigate to a supported job application page
 
 ### Cover Letter Field Not Detected
@@ -127,7 +125,7 @@ autofiller/
 
 ## Limitations
 
-- Currently works on Glassdoor and Greenhouse
+- Currently works on Greenhouse job applications only
 - Requires manual API key configuration
 - Chrome extension only (no Firefox support yet)
 
@@ -141,4 +139,4 @@ autofiller/
 
 ## Version History
 
-- **v1.0.0**: Initial release with Glassdoor and Greenhouse support, Gemini AI integration
+- **v1.0.0**: Initial release with Greenhouse support and Gemini AI integration

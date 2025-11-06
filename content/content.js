@@ -11,9 +11,7 @@ class JobSiteAutofiller {
 
   detectSite() {
     const hostname = window.location.hostname;
-    if (hostname.includes('glassdoor.com')) {
-      return 'glassdoor';
-    } else if (hostname.includes('greenhouse.io')) {
+    if (hostname.includes('greenhouse.io')) {
       return 'greenhouse';
     }
     return 'unknown';
@@ -111,20 +109,12 @@ class JobSiteAutofiller {
     // Get selectors based on current site
     let selectors;
     try {
-      if (this.currentSite === 'greenhouse') {
-        selectors = (typeof CONFIG !== 'undefined' && CONFIG.GREENHOUSE_SELECTORS) 
-          ? CONFIG.GREENHOUSE_SELECTORS 
-          : this.getDefaultGreenhouseSelectors();
-      } else {
-        selectors = (typeof CONFIG !== 'undefined' && CONFIG.GLASSDOOR_SELECTORS) 
-          ? CONFIG.GLASSDOOR_SELECTORS 
-          : this.getDefaultGlassdoorSelectors();
-      }
+      selectors = (typeof CONFIG !== 'undefined' && CONFIG.GREENHOUSE_SELECTORS) 
+        ? CONFIG.GREENHOUSE_SELECTORS 
+        : this.getDefaultGreenhouseSelectors();
     } catch (error) {
       console.error('Error accessing CONFIG:', error);
-      selectors = this.currentSite === 'greenhouse' 
-        ? this.getDefaultGreenhouseSelectors() 
-        : this.getDefaultGlassdoorSelectors();
+      selectors = this.getDefaultGreenhouseSelectors();
     }
 
     // Extract job details using site-specific selectors
@@ -132,41 +122,10 @@ class JobSiteAutofiller {
     this.jobDetails.company = this.extractTextFromSelectors(selectors.companyName);
     this.jobDetails.description = this.extractTextFromSelectors(selectors.jobDescription);
     
-    // Site-specific fallbacks
-    if (this.currentSite === 'greenhouse') {
-      this.extractGreenhouseFallbacks();
-    } else {
-      this.extractGlassdoorFallbacks();
-    }
+    // Apply fallbacks tailored for Greenhouse pages
+    this.extractGreenhouseFallbacks();
 
     console.log(`Extracted job details from ${this.currentSite}:`, this.jobDetails);
-  }
-
-  getDefaultGlassdoorSelectors() {
-    return {
-      jobTitle: [
-        '[data-test="job-title"]',
-        '.jobTitle',
-        'h1[data-test="job-title"]',
-        '.css-17x2pwl',
-        '[class*="JobDetails_jobTitle"]',
-        'h1'
-      ],
-      companyName: [
-        '[data-test="employer-name"]',
-        '.employerName',
-        '[class*="EmployerProfile_employerName"]',
-        'a[data-test="employer-name"]',
-        '[data-test="employer-name"] span'
-      ],
-      jobDescription: [
-        '[data-test="job-description"]',
-        '.jobDescriptionContent',
-        '[class*="JobDetails_jobDescription"]',
-        '.desc',
-        '[class*="jobDescription"]'
-      ]
-    };
   }
 
   getDefaultGreenhouseSelectors() {
@@ -199,19 +158,6 @@ class JobSiteAutofiller {
     };
   }
 
-  getDefaultGlassdoorCoverLetterSelectors() {
-    return [
-      'textarea[name="coverLetter"]',
-      'textarea[placeholder*="cover letter"]',
-      'textarea[placeholder*="Cover Letter"]',
-      'textarea[id*="coverLetter"]',
-      'textarea[class*="coverLetter"]',
-      'textarea[data-test*="cover"]',
-      'textarea[aria-label*="cover"]',
-      'textarea[aria-label*="Cover"]'
-    ];
-  }
-
   getDefaultGreenhouseCoverLetterSelectors() {
     return [
       'textarea[name="cover_letter"]',
@@ -230,19 +176,6 @@ class JobSiteAutofiller {
       'textarea[data-provides="typeahead"]',
       'div[data-provides="typeahead"] textarea'
     ];
-  }
-
-  extractGlassdoorFallbacks() {
-    // Fallback: try to get from page title or URL
-    if (!this.jobDetails.title) {
-      const titleMatch = document.title.match(/(.+?)\s*-\s*(.+?)\s*-\s*Glassdoor/);
-      if (titleMatch) {
-        this.jobDetails.title = titleMatch[1].trim();
-        if (!this.jobDetails.company) {
-          this.jobDetails.company = titleMatch[2].trim();
-        }
-      }
-    }
   }
 
   extractGreenhouseFallbacks() {
@@ -351,22 +284,13 @@ class JobSiteAutofiller {
     // Get cover letter selectors based on current site
     let selectors;
     try {
-      if (this.currentSite === 'greenhouse') {
-        selectors = (typeof CONFIG !== 'undefined' && CONFIG.GREENHOUSE_SELECTORS?.coverLetterTextarea) 
-          ? CONFIG.GREENHOUSE_SELECTORS.coverLetterTextarea 
-          : this.getDefaultGreenhouseCoverLetterSelectors();
-        console.log('Using Greenhouse selectors:', selectors.length, 'selectors');
-      } else {
-        selectors = (typeof CONFIG !== 'undefined' && CONFIG.GLASSDOOR_SELECTORS?.coverLetterTextarea) 
-          ? CONFIG.GLASSDOOR_SELECTORS.coverLetterTextarea 
-          : this.getDefaultGlassdoorCoverLetterSelectors();
-        console.log('Using Glassdoor selectors:', selectors.length, 'selectors');
-      }
+      selectors = (typeof CONFIG !== 'undefined' && CONFIG.GREENHOUSE_SELECTORS?.coverLetterTextarea) 
+        ? CONFIG.GREENHOUSE_SELECTORS.coverLetterTextarea 
+        : this.getDefaultGreenhouseCoverLetterSelectors();
+      console.log('Using Greenhouse selectors:', selectors.length, 'selectors');
     } catch (error) {
       console.error('Error accessing cover letter selectors:', error);
-      selectors = this.currentSite === 'greenhouse' 
-        ? this.getDefaultGreenhouseCoverLetterSelectors() 
-        : this.getDefaultGlassdoorCoverLetterSelectors();
+      selectors = this.getDefaultGreenhouseCoverLetterSelectors();
     }
 
     console.log('Testing selectors:', selectors);

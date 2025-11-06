@@ -10,7 +10,6 @@
   ],
   
   "host_permissions": [
-    "https://www.glassdoor.com/*",
     "https://job-boards.greenhouse.io/*",
     "https://boards.greenhouse.io/*",
     "https://*.greenhouse.io/*",
@@ -24,7 +23,6 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.glassdoor.com/*",
         "https://job-boards.greenhouse.io/*",
         "https://boards.greenhouse.io/*",
         "https://*.greenhouse.io/*"
@@ -55,7 +53,11 @@
   "web_accessible_resources": [
     {
       "resources": ["assets/*"],
-      "matches": ["https://www.glassdoor.com/*"]
+      "matches": [
+        "https://job-boards.greenhouse.io/*",
+        "https://boards.greenhouse.io/*",
+        "https://*.greenhouse.io/*"
+      ]
     }
   ]
 }

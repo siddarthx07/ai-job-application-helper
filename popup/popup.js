@@ -100,12 +100,11 @@ class AutoFillerPopup {
 
   isSupportedPage() {
     const url = this.currentTab?.url || '';
-    return url.includes('glassdoor.com') || url.includes('greenhouse.io');
+    return url.includes('greenhouse.io');
   }
 
   getSiteName() {
     const url = this.currentTab?.url || '';
-    if (url.includes('glassdoor.com')) return 'Glassdoor';
     if (url.includes('greenhouse.io')) return 'Greenhouse';
     return 'Unknown';
   }
@@ -116,7 +115,7 @@ class AutoFillerPopup {
       <div style="text-align: center; color: #dc3545; padding: 20px;">
         <p><strong>⚠️ Please navigate to a supported job page</strong></p>
         <p style="font-size: 12px; margin-top: 8px;">
-          This extension works on Glassdoor and Greenhouse job application pages.
+          This extension works on Greenhouse job application pages.
         </p>
       </div>
     `;

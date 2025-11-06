@@ -25,23 +25,23 @@
 ### Step 3: Pin & Use
 1. Click the puzzle piece 🧩 in Chrome toolbar
 2. Pin the "AutoFiller" extension
-3. Go to a Glassdoor job page
+3. Go to a Greenhouse job application page
 4. Click the AutoFiller icon
 5. Add your resume and generate cover letters!
 
 ## ⚡ Quick Test
-1. Go to any Glassdoor or Greenhouse job posting
+1. Go to any Greenhouse job posting
 2. Click the AutoFiller extension icon
-3. You should see "Ready (Glassdoor)" or "Ready (Greenhouse)" status and job details detected
+3. You should see "Ready (Greenhouse)" status and job details detected
 
 ## 🔧 Troubleshooting
 - **"API: Not configured"**: Add your Gemini API key to `config/config.js`
-- **"Unsupported site"**: Navigate to a Glassdoor or Greenhouse job page
+- **"Unsupported site"**: Navigate to a Greenhouse job page
 - **Extension not visible**: Check `chrome://extensions/` and make sure it's enabled
 
 ## 📝 Usage Flow
 1. **Add Resume**: Paste your resume text and save it
-2. **Find Job**: Go to Glassdoor or Greenhouse job application page  
+2. **Find Job**: Go to a Greenhouse job application page  
 3. **Generate**: Click "Generate Cover Letter"
 4. **Use**: Either auto-fill or download based on page type
 
