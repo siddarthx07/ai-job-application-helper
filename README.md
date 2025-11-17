@@ -6,6 +6,7 @@ A Chrome extension that automatically generates tailored cover letters using Goo
 
 - 🤖 **AI-Powered Generation**: Uses Gemini AI to create personalized cover letters
 - 📝 **Smart Auto-Fill**: Automatically detects and fills cover letter fields on job forms
+- 📌 **Docked Side Panel**: Full-height Chrome Side Panel experience so you can work right next to the application form
 - 🎯 **Multi-Source Detection**: Extracts job details from structured data, Open Graph, DOM heuristics, and site-specific selectors
 - 🌐 **Universal Support**: Works on any job site (optimized for Greenhouse, Workday, Lever)
 - 🔍 **Intelligent Field Detection**: Finds cover letter fields using site-specific selectors and generic heuristics
@@ -37,17 +38,17 @@ A Chrome extension that automatically generates tailored cover letters using Goo
 
 ## Usage
 
-1. **Add Resume**: Click extension icon → Paste resume → Save
-2. **Navigate to Job**: Open any job application page
-3. **Generate**: Review detected job details → Choose tone/length → Generate
-4. **Fill Form**: Click "Fill Form" to auto-fill, or edit first if needed
+1. **Open AutoFiller**: Click the extension icon to open Chrome's side panel on the right. The workspace stays pinned while you browse job pages.
+2. **Add Resume**: Paste your resume into the side panel's "Your Resume" section and save it locally.
+3. **Navigate to Job**: Open any job application page. The side panel will show detected company, role, and whether a cover-letter field exists.
+4. **Generate & Fill**: Choose tone/length → Generate → Edit if necessary → Click "Fill Form" to push it into the application.
 
 The extension automatically detects job details and cover letter fields. Works with textarea, input, and contenteditable fields.
 
 ## Troubleshooting
 
 - **API Not Configured**: Ensure `.env` file exists and run `npm run build`
-- **Field Not Detected**: Click "Refresh" in popup, ensure you're on the application form (not just job posting)
+- **Field Not Detected**: Click "Refresh" inside the side panel, ensure you're on the actual application form (not just the posting)
 - **Job Details Missing**: Extension waits up to 15s for async content - try refreshing
 - **Extension Not Working**: Reload extension in `chrome://extensions/`, refresh page, check console (F12)
 

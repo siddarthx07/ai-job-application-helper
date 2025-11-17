@@ -36,6 +36,17 @@ Frameworks: [Your Frameworks]`;
     await chrome.storage.local.set({ resume: RESUME_TEXT });
     console.log('✅ Resume pre-loaded successfully');
   }
+
+  if (chrome.sidePanel) {
+    try {
+      await chrome.sidePanel.setOptions({
+        path: 'popup/popup.html',
+        enabled: true
+      });
+    } catch (error) {
+      console.error('❌ Failed to configure side panel default path:', error);
+    }
+  }
 });
 
 class GeminiAPI {
@@ -180,6 +191,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keep message channel open for async response
   }
   
+});
+
+// Open the side panel when the user clicks the toolbar icon
+chrome.action.onClicked.addListener(async (tab) => {
+  if (!chrome.sidePanel || !tab?.id) {
+    return;
+  }
+
+  if (tab.url && (
+    tab.url.startsWith('chrome://') ||
+    tab.url.startsWith('edge://') ||
+    tab.url.startsWith('about:')
+  )) {
+    console.warn('Side panel cannot be opened on this page type:', tab.url);
+    return;
+  }
+
+  try {
+    await chrome.sidePanel.setOptions({
+      tabId: tab.id,
+      path: 'popup/popup.html',
+      enabled: true
+    });
+    await chrome.sidePanel.open({ tabId: tab.id });
+  } catch (error) {
+    console.error('❌ Failed to open side panel:', error);
+  }
 });
 
 
