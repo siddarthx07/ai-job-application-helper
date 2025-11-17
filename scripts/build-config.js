@@ -36,7 +36,7 @@ function generateConfig() {
 
 const CONFIG = {
   // Gemini API Configuration
-  GEMINI_API_KEY: '${env.GEMINI_API || 'not_configured'}',
+  GEMINI_API_KEY: '${env.GEMINI_API_KEY || 'not_configured'}',
   GEMINI_MODEL: 'gemini-2.5-flash', // Using 2.5 Flash - latest version
   GEMINI_TEMPERATURE: 0.7,
   GEMINI_MAX_TOKENS: 4000, // Increased for longer, detailed cover letters with proper formatting

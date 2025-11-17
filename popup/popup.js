@@ -6,6 +6,7 @@ class AutoFillerPopup {
     this.jobDetails = {};
     this.currentTab = null;
     this.generatedCoverLetter = '';
+    this.injectedTabs = new Set();
     this.init();
   }
 
@@ -69,7 +70,7 @@ class AutoFillerPopup {
     }
   }
 
-  async checkPageStatus() {
+  async checkPageStatus(hasRetried = false) {
     if (!this.isSupportedPage()) {
       this.showPageWarning();
       return;
@@ -86,36 +87,52 @@ class AutoFillerPopup {
       });
 
       if (response && response.success) {
-        this.jobDetails = response.jobDetails;
-        this.updateJobDetailsUI(response.jobDetails, response.hasCoverLetterField);
+        const jobDetails = response.jobDetails || {};
+        this.jobDetails = jobDetails;
+        this.updateJobDetailsUI(jobDetails, !!response.hasCoverLetterField);
         this.updateStatus('active', `Ready (${siteName})`);
       } else {
         this.updateStatus('error', 'Page not ready');
       }
     } catch (error) {
       console.error('Error checking page status:', error);
+      if (!hasRetried && this.shouldAttemptContentInjection(error)) {
+        const injected = await this.ensureContentScriptsInjected();
+        if (injected) {
+          return this.checkPageStatus(true);
+        }
+      }
       this.updateStatus('error', 'Connection failed');
+      this.showMessage('Could not connect to the job page. Reload it and try again.', 'error');
     }
   }
 
   isSupportedPage() {
     const url = this.currentTab?.url || '';
-    return url.includes('greenhouse.io');
+    if (!url.startsWith('http')) return false;
+    if (url.startsWith('chrome://') || url.startsWith('edge://') || url.startsWith('about:')) {
+      return false;
+    }
+    return true;
   }
 
   getSiteName() {
     const url = this.currentTab?.url || '';
-    if (url.includes('greenhouse.io')) return 'Greenhouse';
-    return 'Unknown';
+    try {
+      const hostname = new URL(url).hostname;
+      return hostname || 'Unknown site';
+    } catch (error) {
+      return 'Unknown site';
+    }
   }
 
   showPageWarning() {
     this.updateStatus('error', 'Unsupported site');
     document.getElementById('jobInfo').innerHTML = `
       <div style="text-align: center; color: #dc3545; padding: 20px;">
-        <p><strong>⚠️ Please navigate to a supported job page</strong></p>
+        <p><strong>⚠️ Please open a job application page in your browser</strong></p>
         <p style="font-size: 12px; margin-top: 8px;">
-          This extension works on Greenhouse job application pages.
+          AutoFiller works on most public job postings that load in a regular browser tab.
         </p>
       </div>
     `;
@@ -131,8 +148,8 @@ class AutoFillerPopup {
       statusElement.textContent = '✅ Found (Auto-fill)';
       statusElement.className = 'text-success';
     } else {
-      statusElement.textContent = '❌ Not found';
-      statusElement.className = 'text-error';
+      statusElement.textContent = 'Not detected';
+      statusElement.className = '';
     }
   }
 
@@ -388,6 +405,39 @@ class AutoFillerPopup {
     setTimeout(() => {
       messageDiv.remove();
     }, 3000);
+  }
+
+  shouldAttemptContentInjection(error) {
+    const message = error?.message || '';
+    return (
+      message.includes('Could not establish connection') ||
+      message.includes('Receiving end does not exist')
+    );
+  }
+
+  async ensureContentScriptsInjected() {
+    if (!this.currentTab?.id) {
+      return false;
+    }
+
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: this.currentTab.id },
+        files: ['config/config.js']
+      });
+      await chrome.scripting.executeScript({
+        target: { tabId: this.currentTab.id },
+        files: ['content/content.js']
+      });
+      this.injectedTabs.add(this.currentTab.id);
+      // Give the script a moment to register listeners
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return true;
+    } catch (error) {
+      console.error('Failed to inject content scripts:', error);
+      this.showMessage('Allow AutoFiller to run on this site and reload the page.', 'error');
+      return false;
+    }
   }
 }
 

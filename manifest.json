@@ -6,13 +6,13 @@
   
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "scripting"
   ],
   
   "host_permissions": [
-    "https://job-boards.greenhouse.io/*",
-    "https://boards.greenhouse.io/*",
-    "https://*.greenhouse.io/*",
+    "https://*/*",
+    "http://*/*",
     "https://generativelanguage.googleapis.com/*"
   ],
   
@@ -23,9 +23,8 @@
   "content_scripts": [
     {
       "matches": [
-        "https://job-boards.greenhouse.io/*",
-        "https://boards.greenhouse.io/*",
-        "https://*.greenhouse.io/*"
+        "https://*/*",
+        "http://*/*"
       ],
       "js": ["config/config.js", "content/content.js"],
       "css": ["content/content.css"]
@@ -54,9 +53,8 @@
     {
       "resources": ["assets/*"],
       "matches": [
-        "https://job-boards.greenhouse.io/*",
-        "https://boards.greenhouse.io/*",
-        "https://*.greenhouse.io/*"
+        "https://*/*",
+        "http://*/*"
       ]
     }
   ]
