@@ -4,15 +4,15 @@ A Chrome extension that automatically generates tailored cover letters using Goo
 
 ## Features
 
-- 🤖 **AI-Powered Generation**: Uses Gemini AI to create personalized cover letters
-- 📝 **Smart Auto-Fill**: Automatically detects and fills cover letter fields on job forms
-- 📌 **Docked Side Panel**: Full-height Chrome Side Panel experience so you can work right next to the application form
-- 🎯 **Multi-Source Detection**: Extracts job details from structured data, Open Graph, DOM heuristics, and site-specific selectors
-- 🌐 **Universal Support**: Works on any job site (optimized for Greenhouse, Workday, Lever)
-- 🔍 **Intelligent Field Detection**: Finds cover letter fields using site-specific selectors and generic heuristics
-- ⚙️ **Customizable**: Choose tone (professional, enthusiastic, technical, creative) and length (short, medium, long)
-- ✏️ **Edit & Persist**: Review, edit, and save generated cover letters
-- 💾 **Local Storage**: Resume and preferences saved locally
+- **AI-Powered Generation**: Uses Gemini AI to create personalized cover letters
+- **Smart Auto-Fill**: Automatically detects and fills cover letter fields on job forms
+- **Docked Side Panel**: Full-height Chrome Side Panel experience so you can work right next to the application form
+- **Multi-Source Detection**: Extracts job details from structured data, Open Graph, DOM heuristics, and site-specific selectors
+- **Universal Support**: Works on any job site (optimized for Greenhouse, Workday, Lever)
+- **Intelligent Field Detection**: Finds cover letter fields using site-specific selectors and generic heuristics
+- **Customizable**: Choose tone (professional, enthusiastic, technical, creative) and length (short, medium, long)
+- **Edit & Persist**: Review, edit, and save generated cover letters
+- **Local Storage**: Resume and preferences saved locally
 
 ## Setup
 
