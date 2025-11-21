@@ -11,5 +11,8 @@ node_modules/
 dist/
 build/
 
+# Vendor files (large TeX Live distribution)
+vendor/
+
 resume.txt
 config/config.js
