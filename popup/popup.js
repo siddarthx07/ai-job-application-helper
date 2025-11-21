@@ -6,6 +6,9 @@ class AutoFillerPopup {
     this.jobDetails = {};
     this.currentTab = null;
     this.generatedCoverLetter = '';
+    this.resumeFileMeta = null;
+    this.generatedResume = null;
+    this.currentJobKey = null;
     this.injectedTabs = new Set();
     this.init();
   }
@@ -15,6 +18,8 @@ class AutoFillerPopup {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     this.currentTab = tabs[0];
 
+    console.log('[LaTeX] Using LaTeX.Online API for server-side compilation');
+
     // Initialize UI
     this.setupEventListeners();
     await this.loadSavedData();
@@ -23,9 +28,10 @@ class AutoFillerPopup {
   }
 
   setupEventListeners() {
-    // Resume management
-    document.getElementById('saveResume').addEventListener('click', () => this.saveResume());
-    document.getElementById('resumeText').addEventListener('input', () => this.onResumeChange());
+    // Resume upload
+    const resumeInput = document.getElementById('resumeFileInput');
+    document.getElementById('uploadResumeButton').addEventListener('click', () => resumeInput.click());
+    resumeInput.addEventListener('change', (event) => this.handleResumeUpload(event));
 
     // Job details
     document.getElementById('refreshJobDetails').addEventListener('click', () => this.refreshJobDetails());
@@ -36,6 +42,8 @@ class AutoFillerPopup {
 
     // Main actions
     document.getElementById('generateButton').addEventListener('click', () => this.generateCoverLetter());
+    document.getElementById('generateResumeButton').addEventListener('click', () => this.generateTailoredResume());
+    document.getElementById('downloadResumeButton').addEventListener('click', () => this.downloadTailoredResume());
 
     // Preview actions
     document.getElementById('editButton').addEventListener('click', () => this.enableEditing());
@@ -45,10 +53,17 @@ class AutoFillerPopup {
 
   async loadSavedData() {
     try {
-      // Load saved resume
-      const resumeResponse = await chrome.runtime.sendMessage({ action: 'getResume' });
-      if (resumeResponse.success && resumeResponse.resume) {
-        document.getElementById('resumeText').value = resumeResponse.resume;
+      // Load resume metadata
+      const resumeResponse = await chrome.runtime.sendMessage({ action: 'getResumeFile' });
+      if (resumeResponse.success && resumeResponse.resumeFile) {
+        const file = resumeResponse.resumeFile;
+        this.resumeFileMeta = {
+          name: file.name,
+          size: file.size,
+          uploadedAt: file.uploadedAt,
+          hasExtractedText: Boolean(file.text)
+        };
+        this.updateResumeStatus();
       }
 
       // Load saved preferences
@@ -88,8 +103,14 @@ class AutoFillerPopup {
 
       if (response && response.success) {
         const jobDetails = response.jobDetails || {};
+        const newJobKey = this.getJobKey(jobDetails);
+        if (this.currentJobKey && this.currentJobKey !== newJobKey) {
+          this.clearResumePreview();
+        }
         this.jobDetails = jobDetails;
+        this.currentJobKey = newJobKey;
         this.updateJobDetailsUI(jobDetails, !!response.hasCoverLetterField);
+        this.loadStoredResumeForJob();
         this.updateStatus('active', `Ready (${siteName})`);
       } else {
         this.updateStatus('error', 'Page not ready');
@@ -124,6 +145,12 @@ class AutoFillerPopup {
     } catch (error) {
       return 'Unknown site';
     }
+  }
+
+  getJobKey(details = this.jobDetails) {
+    const company = (details.company || 'unknown').trim().toLowerCase();
+    const title = (details.title || 'unknown').trim().toLowerCase();
+    return `${company}::${title}`;
   }
 
   showPageWarning() {
@@ -178,31 +205,184 @@ class AutoFillerPopup {
     });
   }
 
-  async saveResume() {
-    const resumeText = document.getElementById('resumeText').value.trim();
-    if (!resumeText) {
-      this.showMessage('Please enter your resume text', 'error');
+  loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[data-autofiller-src="${src}"]`);
+      if (existing) {
+        if (existing.dataset.loaded === 'true') {
+          resolve();
+        } else {
+          existing.addEventListener('load', () => resolve(), { once: true });
+          existing.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
+        }
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = src;
+      script.dataset.autofillerSrc = src;
+      script.onload = () => {
+        script.dataset.loaded = 'true';
+        resolve();
+      };
+      script.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+
+  // WASM compiler methods removed - now using LaTeX.Online API for server-side compilation
+
+  async ensurePdfParserRuntime() {
+    if (window.__autofillerPdfParserLoaded) {
       return;
     }
+    await this.loadScript(chrome.runtime.getURL('vendor/pdfjs/pdf.min.js'));
+    if (!window.pdfjsLib) {
+      throw new Error('PDF.js library is unavailable');
+    }
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('vendor/pdfjs/pdf.worker.min.js');
+    window.__autofillerPdfParserLoaded = true;
+  }
 
+  async extractTextFromPdf(arrayBuffer) {
     try {
-      await chrome.runtime.sendMessage({ 
-        action: 'saveResume', 
-        resume: resumeText 
-      });
-      
-      document.getElementById('resumeSaveStatus').textContent = '✅ Saved';
-      setTimeout(() => {
-        document.getElementById('resumeSaveStatus').textContent = '';
-      }, 2000);
+      await this.ensurePdfParserRuntime();
+      const typedArray = new Uint8Array(arrayBuffer);
+      const loadingTask = window.pdfjsLib.getDocument({ data: typedArray });
+      const pdf = await loadingTask.promise;
+      let combinedText = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const content = await page.getTextContent();
+        const pageText = content.items
+          .map(item => (item.str || '').trim())
+          .filter(Boolean)
+          .join(' ');
+        if (pageText) {
+          combinedText += `${pageText}\n\n`;
+        }
+      }
+      return combinedText.trim();
     } catch (error) {
-      console.error('Error saving resume:', error);
-      this.showMessage('Failed to save resume', 'error');
+      console.error('Failed to extract text from resume PDF:', error);
+      return '';
     }
   }
 
-  onResumeChange() {
-    document.getElementById('resumeSaveStatus').textContent = '';
+  arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i += 0xffff) {
+      const chunk = bytes.subarray(i, i + 0xffff);
+      binary += String.fromCharCode.apply(null, chunk);
+    }
+    return window.btoa(binary);
+  }
+
+  formatTimestamp(timestamp) {
+    if (!timestamp) return '';
+    try {
+      const date = new Date(timestamp);
+      return `Updated ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    } catch (error) {
+      return '';
+    }
+  }
+
+  updateResumeStatus() {
+    const nameEl = document.getElementById('resumeFileName');
+    const updatedEl = document.getElementById('resumeUpdatedAt');
+    const statusEl = document.getElementById('resumeUploadStatus');
+    if (this.resumeFileMeta?.name) {
+      nameEl.textContent = this.resumeFileMeta.name;
+      updatedEl.textContent = this.formatTimestamp(this.resumeFileMeta.uploadedAt);
+      if (this.resumeFileMeta.hasExtractedText === false) {
+        statusEl.textContent = '⚠️ Text extraction failed';
+        statusEl.style.color = '#dc3545';
+      } else {
+        statusEl.textContent = '';
+        statusEl.style.color = '';
+      }
+    } else {
+      nameEl.textContent = 'No resume uploaded';
+      updatedEl.textContent = '';
+      statusEl.textContent = '';
+      statusEl.style.color = '';
+    }
+  }
+
+  async handleResumeUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      this.showMessage('Please upload a PDF resume file', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (loadEvent) => {
+      try {
+        const arrayBuffer = loadEvent.target.result;
+
+        // Clone the ArrayBuffer before PDF.js detaches it
+        const arrayBufferCopy = arrayBuffer.slice(0);
+
+        const extractedText = await this.extractTextFromPdf(arrayBufferCopy);
+        if (!extractedText?.trim()) {
+          this.showMessage('Could not extract text from PDF. Please upload a text-based resume.', 'error');
+          event.target.value = '';
+          return;
+        }
+        const base64 = this.arrayBufferToBase64(arrayBuffer);
+        const payload = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          data: base64,
+          uploadedAt: Date.now(),
+          text: extractedText
+        };
+
+        const response = await chrome.runtime.sendMessage({
+          action: 'saveResumeFile',
+          resumeFile: payload
+        });
+
+        if (!response || !response.success) {
+          throw new Error(response?.error || 'Failed to save resume to storage');
+        }
+
+        this.resumeFileMeta = {
+          name: payload.name,
+          size: payload.size,
+          uploadedAt: payload.uploadedAt,
+          hasExtractedText: true
+        };
+        this.updateResumeStatus();
+
+        const statusEl = document.getElementById('resumeUploadStatus');
+        statusEl.textContent = '✅ Uploaded';
+        statusEl.style.color = '';
+        setTimeout(() => {
+          statusEl.textContent = '';
+        }, 2500);
+      } catch (error) {
+        console.error('Failed to store resume file', error);
+        this.showMessage('Failed to store resume file', 'error');
+      } finally {
+        event.target.value = '';
+      }
+    };
+
+    reader.onerror = () => {
+      this.showMessage('Could not read the selected file', 'error');
+      event.target.value = '';
+    };
+
+    reader.readAsArrayBuffer(file);
   }
 
   async savePreferences() {
@@ -232,9 +412,12 @@ class AutoFillerPopup {
   }
 
   async generateCoverLetter() {
-    const resumeText = document.getElementById('resumeText').value.trim();
-    if (!resumeText) {
-      this.showMessage('Please enter your resume text first', 'error');
+    if (!this.resumeFileMeta) {
+      this.showMessage('Upload your resume PDF first', 'error');
+      return;
+    }
+    if (!this.resumeFileMeta.hasExtractedText) {
+      this.showMessage('Resume text unavailable. Re-upload a readable PDF.', 'error');
       return;
     }
 
@@ -256,7 +439,7 @@ class AutoFillerPopup {
       const response = await chrome.runtime.sendMessage({
         action: 'generateCoverLetter',
         jobDetails: this.jobDetails,
-        resumeText: resumeText,
+        resumeSource: 'uploadedFile',
         preferences: preferences
       });
 
@@ -281,6 +464,264 @@ class AutoFillerPopup {
       this.showLoading(false);
       document.getElementById('generateButton').disabled = false;
     }
+  }
+
+  async generateTailoredResume() {
+    if (!this.resumeFileMeta) {
+      this.showMessage('Upload your resume PDF before generating a tailored version', 'error');
+      return;
+    }
+    if (!this.resumeFileMeta.hasExtractedText) {
+      this.showMessage('Resume text unavailable. Re-upload a readable PDF.', 'error');
+      return;
+    }
+
+    if (!this.jobDetails.title && !this.jobDetails.company) {
+      this.showMessage('No job detected. Open a job description first.', 'error');
+      return;
+    }
+
+    this.toggleResumeLoading(true);
+    document.getElementById('downloadResumeButton').disabled = true;
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'generateTailoredResume',
+        jobDetails: this.jobDetails
+      });
+
+      if (!response || !response.success) {
+        throw new Error(response?.error || 'Failed to tailor resume');
+      }
+
+      console.log('[Resume] Received response from background script');
+      console.log('[Resume] Response has resumeLatex:', !!response.result?.resumeLatex);
+      console.log('[Resume] LaTeX preview (first 300 chars):',
+        response.result?.resumeLatex?.substring(0, 300));
+
+      this.generatedResume = {
+        latex: response.result.resumeLatex,
+        highlights: response.result.skillsHighlights || [],
+        keywordGaps: response.result.keywordGaps || [],
+        bulletSuggestions: response.result.addedBulletSuggestions || [],
+        generatedAt: Date.now(),
+        jobKey: this.getJobKey()
+      };
+
+      // Try to compile LaTeX to PDF using WASM
+      console.log('[Resume] Attempting to compile LaTeX to PDF...');
+      try {
+        const pdfDataUrl = await this.compileLatex(this.generatedResume.latex);
+        this.generatedResume.pdfDataUrl = pdfDataUrl;
+        this.showResumePreview(pdfDataUrl, this.generatedResume);
+        await this.persistTailoredResume(this.generatedResume);
+        this.showMessage('Tailored resume generated! Preview ready.', 'success');
+      } catch (compileError) {
+        // Fallback: offer LaTeX download if compilation fails
+        console.warn('[Resume] PDF compilation failed, offering LaTeX download:', compileError);
+        this.showResumeInsights(this.generatedResume);
+        this.showLatexDownloadOption(this.generatedResume.latex);
+        await this.persistTailoredResume(this.generatedResume);
+        this.showMessage('Resume generated! Compile LaTeX manually (PDF compilation failed).', 'warning');
+      }
+    } catch (error) {
+      console.error('Error generating tailored resume:', error);
+      this.showMessage(`Resume error: ${error.message}`, 'error');
+    } finally {
+      this.toggleResumeLoading(false);
+    }
+  }
+
+  toggleResumeLoading(show) {
+    const loader = document.getElementById('resumeLoading');
+    const generateButton = document.getElementById('generateResumeButton');
+    loader.style.display = show ? 'flex' : 'none';
+    generateButton.disabled = show;
+  }
+
+  // Test compilation method removed - not needed with LaTeX.Online API
+
+  async compileLatex(latexContent) {
+    console.log('[LaTeX] Starting server-side compilation...');
+    console.log('[LaTeX] Input length:', latexContent.length, 'characters');
+    console.log('[LaTeX] First 200 chars:', latexContent.substring(0, 200));
+    console.log('[LaTeX] Last 200 chars:', latexContent.substring(latexContent.length - 200));
+
+    try {
+      // Send to background script to handle the API call
+      console.log('[LaTeX] Sending compilation request to background script...');
+
+      const response = await chrome.runtime.sendMessage({
+        action: 'compileLatex',
+        latex: latexContent
+      });
+
+      if (!response || !response.success) {
+        throw new Error(response?.error || 'LaTeX compilation failed');
+      }
+
+      console.log('[LaTeX] Compilation successful! PDF size:', response.pdfDataUrl.length, 'bytes');
+      return response.pdfDataUrl;
+    } catch (error) {
+      console.error('[LaTeX] Compilation error:', error);
+      throw new Error(`LaTeX compilation failed: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  showResumePreview(pdfUrl, resumeData) {
+    const frame = document.getElementById('resumePreviewFrame');
+    frame.src = pdfUrl;
+    document.getElementById('resumePreviewContainer').style.display = 'flex';
+    document.getElementById('downloadResumeButton').disabled = false;
+    this.updateResumeInsights(resumeData);
+  }
+
+  showLatexDownloadOption(latexContent) {
+    const container = document.getElementById('resumePreviewContainer');
+    if (container) {
+      container.style.display = 'block';
+      container.innerHTML = `
+        <div style="padding: 20px; text-align: center;">
+          <h3>LaTeX Resume Generated</h3>
+          <p>Compile this with Overleaf or your local LaTeX installation.</p>
+          <button id="downloadLatexButton" style="padding: 10px 20px; font-size: 14px; cursor: pointer;">
+            Download .tex File
+          </button>
+        </div>
+      `;
+
+      document.getElementById('downloadLatexButton').onclick = () => {
+        const blob = new Blob([latexContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.getLatexFileName();
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      };
+    }
+  }
+
+  getLatexFileName() {
+    const company = (this.jobDetails.company || 'company').replace(/\s+/g, '_');
+    const title = (this.jobDetails.title || 'role').replace(/\s+/g, '_');
+    return `AutoFiller_${company}_${title}_resume.tex`;
+  }
+
+  showResumeInsights(resumeData) {
+    document.getElementById('resumePreviewContainer').style.display = 'block';
+    this.updateResumeInsights(resumeData);
+  }
+
+  clearResumePreview() {
+    const container = document.getElementById('resumePreviewContainer');
+    if (container) {
+      container.style.display = 'none';
+    }
+    document.getElementById('downloadResumeButton').disabled = true;
+    this.generatedResume = null;
+  }
+
+  updateResumeInsights(resumeData = {}) {
+    this.renderList(
+      'skillsHighlightsList',
+      resumeData.highlights,
+      (item) => {
+        const score = typeof item.matchScore === 'number' ? `${Math.round(item.matchScore)}%` : '';
+        return {
+          score,
+          title: item.skill || 'Skill',
+          detail: item.justification || ''
+        };
+      },
+      'No highlights yet'
+    );
+
+    this.renderList(
+      'keywordGapList',
+      resumeData.keywordGaps,
+      (item) => ({
+        title: item.keyword || 'Keyword',
+        detail: item.reason || ''
+      }),
+      'No missing keywords 🎉'
+    );
+
+    this.renderList(
+      'bulletSuggestionsList',
+      resumeData.bulletSuggestions,
+      (item) => ({
+        title: item.section ? `${item.section} suggestion` : 'Suggestion',
+        detail: item.text || '',
+        meta: item.reason || ''
+      }),
+      'Click generate to see ideas'
+    );
+  }
+
+  renderList(elementId, items, buildItem, emptyText) {
+    const list = document.getElementById(elementId);
+    list.innerHTML = '';
+
+    if (!items || items.length === 0) {
+      list.classList.add('empty');
+      const li = document.createElement('li');
+      li.textContent = emptyText;
+      list.appendChild(li);
+      return;
+    }
+
+    list.classList.remove('empty');
+    items.forEach((item) => {
+      const data = buildItem(item);
+      const li = document.createElement('li');
+      if (data.score) {
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'score';
+        scoreSpan.textContent = data.score;
+        li.appendChild(scoreSpan);
+      }
+      const title = document.createElement('span');
+      title.className = 'item-title';
+      title.textContent = data.title || '';
+      li.appendChild(title);
+
+      if (data.detail) {
+        const detail = document.createElement('div');
+        detail.className = 'item-detail';
+        detail.textContent = data.detail;
+        li.appendChild(detail);
+      }
+
+      if (data.meta) {
+        const meta = document.createElement('div');
+        meta.className = 'item-meta';
+        meta.textContent = data.meta;
+        li.appendChild(meta);
+      }
+
+      list.appendChild(li);
+    });
+  }
+
+  downloadTailoredResume() {
+    if (!this.generatedResume?.pdfDataUrl) {
+      this.showMessage('No tailored resume to download', 'error');
+      return;
+    }
+    const link = document.createElement('a');
+    link.href = this.generatedResume.pdfDataUrl;
+    link.download = this.getDownloadFileName();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  getDownloadFileName() {
+    const company = (this.jobDetails.company || 'company').replace(/\s+/g, '_');
+    const title = (this.jobDetails.title || 'role').replace(/\s+/g, '_');
+    return `AutoFiller_${company}_${title}_resume.pdf`;
   }
 
   showPreview(coverLetter) {
@@ -374,6 +815,67 @@ class AutoFillerPopup {
     }
   }
 
+  async persistTailoredResume(resumeData) {
+    if (!resumeData?.pdfDataUrl) return;
+    const payload = {
+      jobKey: resumeData.jobKey || this.getJobKey(),
+      company: this.jobDetails.company || '',
+      title: this.jobDetails.title || '',
+      generatedAt: resumeData.generatedAt || Date.now(),
+      latex: resumeData.latex,
+      pdfBase64: this.extractBase64(resumeData.pdfDataUrl),
+      highlights: resumeData.highlights || [],
+      keywordGaps: resumeData.keywordGaps || [],
+      bulletSuggestions: resumeData.bulletSuggestions || []
+    };
+
+    try {
+      await chrome.runtime.sendMessage({
+        action: 'saveTailoredResume',
+        resume: payload
+      });
+    } catch (error) {
+      console.error('Failed to store tailored resume:', error);
+    }
+  }
+
+  async loadStoredResumeForJob() {
+    if (!this.currentJobKey) return;
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'getTailoredResume',
+        jobKey: this.currentJobKey
+      });
+      if (response?.success && response.resume) {
+        const dataUrl = this.buildDataUrl(response.resume.pdfBase64);
+        this.generatedResume = {
+          latex: response.resume.latex || '',
+          highlights: response.resume.highlights || [],
+          keywordGaps: response.resume.keywordGaps || [],
+          bulletSuggestions: response.resume.bulletSuggestions || [],
+          pdfDataUrl: dataUrl,
+          jobKey: this.currentJobKey,
+          generatedAt: response.resume.generatedAt
+        };
+        this.showResumePreview(dataUrl, this.generatedResume);
+        this.showMessage('Loaded your last tailored resume for this job', 'info');
+      }
+    } catch (error) {
+      console.error('Error loading stored resume:', error);
+    }
+  }
+
+  extractBase64(dataUrl) {
+    if (!dataUrl) return '';
+    const parts = dataUrl.split(',');
+    return parts.length > 1 ? parts[1] : '';
+  }
+
+  buildDataUrl(base64) {
+    if (!base64) return '';
+    return `data:application/pdf;base64,${base64}`;
+  }
+
 
   showLoading(show) {
     document.getElementById('loading').style.display = show ? 'flex' : 'none';
@@ -396,12 +898,13 @@ class AutoFillerPopup {
       text-align: center;
       ${type === 'success' ? 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;' : ''}
       ${type === 'error' ? 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;' : ''}
+      ${type === 'warning' ? 'background: #fff3cd; color: #856404; border: 1px solid #ffeeba;' : ''}
       ${type === 'info' ? 'background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;' : ''}
     `;
     messageDiv.textContent = message;
-    
+
     document.body.appendChild(messageDiv);
-    
+
     setTimeout(() => {
       messageDiv.remove();
     }, 3000);
@@ -443,5 +946,36 @@ class AutoFillerPopup {
 
 // Initialize popup when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new AutoFillerPopup();
+  const popup = new AutoFillerPopup();
+
+  // Expose for debugging in console
+  window.autofillerDebug = {
+    popup,
+    testCompile: async (latex) => {
+      if (!latex) {
+        latex = `\\documentclass{article}
+\\begin{document}
+Hello from LaTeX.Online API test!
+\\end{document}`;
+      }
+      console.log('[Debug] Testing LaTeX.Online API compilation...');
+      try {
+        const result = await popup.compileLatex(latex);
+        console.log('[Debug] ✅ Success! PDF URL length:', result.length);
+        console.log('[Debug] PDF preview:', result.substring(0, 100) + '...');
+        return result;
+      } catch (error) {
+        console.error('[Debug] ❌ Failed:', error);
+        throw error;
+      }
+    },
+    getStatus: () => ({
+      compilationMethod: 'LaTeX.Online API (server-side)',
+      apiEndpoint: 'https://latexonline.cc/compile',
+      internetRequired: true
+    })
+  };
+
+  console.log('[AutoFiller] Debug tools available via window.autofillerDebug');
+  console.log('[AutoFiller] Try: autofillerDebug.testCompile() or autofillerDebug.getStatus()');
 });

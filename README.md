@@ -4,15 +4,15 @@ A Chrome extension that automatically generates tailored cover letters using Goo
 
 ## Features
 
-- **AI-Powered Generation**: Uses Gemini AI to create personalized cover letters
-- **Smart Auto-Fill**: Automatically detects and fills cover letter fields on job forms
-- **Docked Side Panel**: Full-height Chrome Side Panel experience so you can work right next to the application form
-- **Multi-Source Detection**: Extracts job details from structured data, Open Graph, DOM heuristics, and site-specific selectors
-- **Universal Support**: Works on any job site (optimized for Greenhouse, Workday, Lever)
-- **Intelligent Field Detection**: Finds cover letter fields using site-specific selectors and generic heuristics
-- **Customizable**: Choose tone (professional, enthusiastic, technical, creative) and length (short, medium, long)
-- **Edit & Persist**: Review, edit, and save generated cover letters
-- **Local Storage**: Resume and preferences saved locally
+- 🤖 **AI-Powered Generation**: Uses Gemini AI to create personalized cover letters
+- 📝 **Smart Auto-Fill**: Automatically detects and fills cover letter fields on job forms
+- 📌 **Docked Side Panel**: Full-height Chrome Side Panel experience so you can work right next to the application form
+- 🎯 **Multi-Source Detection**: Extracts job details from structured data, Open Graph, DOM heuristics, and site-specific selectors
+- 🌐 **Universal Support**: Works on any job site (optimized for Greenhouse, Workday, Lever)
+- 🔍 **Intelligent Field Detection**: Finds cover letter fields using site-specific selectors and generic heuristics
+- ⚙️ **Customizable**: Choose tone (professional, enthusiastic, technical, creative) and length (short, medium, long)
+- ✏️ **Edit & Persist**: Review, edit, and save generated cover letters
+- 💾 **Local Storage**: Resume and preferences saved locally
 
 ## Setup
 
@@ -39,9 +39,20 @@ A Chrome extension that automatically generates tailored cover letters using Goo
 ## Usage
 
 1. **Open AutoFiller**: Click the extension icon to open Chrome's side panel on the right. The workspace stays pinned while you browse job pages.
-2. **Add Resume**: Paste your resume into the side panel's "Your Resume" section and save it locally.
+2. **Upload Resume**: Use the "Upload Resume PDF" button once. The file stays local and powers both cover letters and the tailored resume feature.
 3. **Navigate to Job**: Open any job application page. The side panel will show detected company, role, and whether a cover-letter field exists.
-4. **Generate & Fill**: Choose tone/length → Generate → Edit if necessary → Click "Fill Form" to push it into the application.
+4. **Generate Cover Letter**: Choose tone/length → Generate → Edit if necessary → Click "Fill Form" to push it into the application.
+5. **Tailor Your Resume**: Hit "Generate Tailored Resume" to produce a 1-page PDF (using your provided LaTeX template), preview it immediately, and download it.
+
+### Tailored Resume Workflow
+
+- AutoFiller uploads your PDF resume locally (no servers) and sends it to Gemini along with the current job description.
+- Gemini returns a JSON payload containing:
+  - A fully rewritten LaTeX document that keeps your template + section order
+  - Skill-match scores (so you know which keywords are hitting)
+  - Keyword gaps and suggested bullets (flagged for review)
+- We compile that LaTeX **inside the extension** using a WebAssembly build of TeX Live, show the PDF preview in the side panel, and let you download/share it instantly.
+- The tailored PDF + insights are cached per job, so revisiting the same job instantly reloads your last version.
 
 The extension automatically detects job details and cover letter fields. Works with textarea, input, and contenteditable fields.
 
@@ -51,6 +62,7 @@ The extension automatically detects job details and cover letter fields. Works w
 - **Field Not Detected**: Click "Refresh" inside the side panel, ensure you're on the actual application form (not just the posting)
 - **Job Details Missing**: Extension waits up to 15s for async content - try refreshing
 - **Extension Not Working**: Reload extension in `chrome://extensions/`, refresh page, check console (F12)
+- **Resume Compiler Errors**: Make sure you're uploading a valid PDF, then re-open the side panel to reinitialize the TeX Live engine. The compiler runs locally, so heavy resumes may take a few seconds on first load.
 
 ## Privacy & Security
 

@@ -25,14 +25,22 @@
       <!-- Resume Section -->
       <div class="section">
         <h3>📄 Your Resume</h3>
-        <textarea 
-          id="resumeText" 
-          placeholder="Paste your resume text here..."
-          rows="6"
-        ></textarea>
-        <div class="section-actions">
-          <button id="saveResume" class="btn btn-secondary">Save Resume</button>
-          <span class="save-status" id="resumeSaveStatus"></span>
+        <div class="resume-upload">
+          <div class="upload-info">
+            <p>Upload your PDF resume. We'll keep it secure on this device and use it for cover letters & tailored resumes.</p>
+            <button id="uploadResumeButton" class="btn btn-secondary">Upload Resume PDF</button>
+            <input type="file" id="resumeFileInput" accept="application/pdf" hidden />
+          </div>
+          <div class="resume-meta">
+            <div class="resume-file">
+              <span class="label">Current file:</span>
+              <span id="resumeFileName">No resume uploaded</span>
+            </div>
+            <div class="resume-updated">
+              <span id="resumeUpdatedAt"></span>
+              <span class="save-status" id="resumeUploadStatus"></span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -82,15 +90,23 @@
 
       <!-- Action Section -->
       <div class="section">
-        <div class="action-buttons">
+        <div class="action-buttons dual">
           <button id="generateButton" class="btn btn-primary">
             <span class="btn-icon">✨</span>
             Generate Cover Letter
+          </button>
+          <button id="generateResumeButton" class="btn btn-outline">
+            <span class="btn-icon">🧱</span>
+            Generate Tailored Resume
           </button>
         </div>
         <div class="loading" id="loading" style="display: none;">
           <div class="spinner"></div>
           <span>Generating your personalized cover letter...</span>
+        </div>
+        <div class="loading" id="resumeLoading" style="display: none;">
+          <div class="spinner"></div>
+          <span>Tailoring your resume to this job...</span>
         </div>
       </div>
 
@@ -103,6 +119,41 @@
             <button id="editButton" class="btn btn-secondary">✏️ Edit</button>
             <button id="fillButton" class="btn btn-primary">📝 Fill Form</button>
             <button id="clearButton" class="btn btn-danger">🗑️ Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="resumeSection">
+        <div class="resume-section-header">
+          <h3>📌 Tailored Resume</h3>
+          <button id="downloadResumeButton" class="btn btn-secondary" disabled>
+            ⬇️ Download PDF
+          </button>
+        </div>
+        <p class="resume-hint">
+          Upload your PDF resume, click "Generate Tailored Resume", preview the compiled PDF, then download or reuse it later.
+        </p>
+        <div class="resume-preview-container" id="resumePreviewContainer" style="display: none;">
+          <iframe id="resumePreviewFrame" title="Tailored Resume Preview"></iframe>
+          <div class="resume-insights">
+            <div>
+              <h4>Top Skill Matches</h4>
+              <ul id="skillsHighlightsList" class="resume-list empty">
+                <li>No highlights yet</li>
+              </ul>
+            </div>
+            <div>
+              <h4>Keyword Opportunities</h4>
+              <ul id="keywordGapList" class="resume-list empty">
+                <li>No suggestions yet</li>
+              </ul>
+            </div>
+            <div>
+              <h4>New Bullet Suggestions</h4>
+              <ul id="bulletSuggestionsList" class="resume-list empty">
+                <li>Click generate to see ideas</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

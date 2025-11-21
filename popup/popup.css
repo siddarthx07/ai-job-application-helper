@@ -108,21 +108,16 @@ body {
 }
 
 /* Resume Section */
-#resumeText {
-  width: 100%;
-  min-height: 120px;
-  padding: 12px;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 13px;
-  resize: vertical;
-  transition: border-color 0.2s;
+.resume-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-#resumeText:focus {
-  outline: none;
-  border-color: #4CAF50;
+.resume-upload p {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 8px;
 }
 
 .section-actions {
@@ -135,6 +130,34 @@ body {
 .save-status {
   font-size: 12px;
   color: #28a745;
+}
+
+.resume-meta {
+  background: #f9fafb;
+  border: 1px dashed #d1d9e0;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.resume-meta .label {
+  font-weight: 600;
+  color: #334155;
+}
+
+.resume-meta #resumeFileName {
+  font-weight: 500;
+  color: #111827;
+}
+
+.resume-updated {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
 }
 
 /* Job Details */
@@ -266,6 +289,28 @@ body {
   justify-content: center;
 }
 
+.action-buttons.dual {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-buttons.dual .btn {
+  flex: 1 1 150px;
+}
+
+.btn-outline {
+  background: #fff;
+  border: 2px dashed #94a3b8;
+  color: #0f172a;
+}
+
+.btn-outline:hover {
+  border-color: #4CAF50;
+  color: #1b4332;
+  transform: translateY(-1px);
+}
+
 /* Loading */
 .loading {
   display: flex;
@@ -323,6 +368,85 @@ body {
 .preview-actions .btn {
   flex: 1;
   justify-content: center;
+}
+
+/* Resume tailoring */
+.resume-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.resume-hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.resume-preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resume-preview-container iframe {
+  width: 100%;
+  min-height: 360px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.resume-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.resume-insights h4 {
+  font-size: 13px;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.resume-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.resume-list.empty {
+  color: #94a3b8;
+}
+
+.resume-list li span.score {
+  font-weight: 600;
+  color: #047857;
+  margin-right: 6px;
+}
+
+.resume-list .item-title {
+  font-weight: 600;
+  display: block;
+}
+
+.resume-list .item-detail {
+  font-size: 12px;
+  color: #475569;
+  margin-top: 2px;
+}
+
+.resume-list .item-meta {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
 }
 
 /* Footer */
