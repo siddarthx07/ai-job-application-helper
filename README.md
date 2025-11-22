@@ -42,7 +42,7 @@ A Chrome extension that automatically generates tailored cover letters using Goo
 2. **Upload Resume**: Use the "Upload Resume PDF" button once. The file stays local and powers both cover letters and the tailored resume feature.
 3. **Navigate to Job**: Open any job application page. The side panel will show detected company, role, and whether a cover-letter field exists.
 4. **Generate Cover Letter**: Choose tone/length → Generate → Edit if necessary → Click "Fill Form" to push it into the application.
-5. **Tailor Your Resume**: Hit "Generate Tailored Resume" to produce a 1-page PDF (using your provided LaTeX template), preview it immediately, and download it.
+5. **Tailor Your Resume**: Hit "Generate Tailored Resume" to produce a LaTeX file, view insights, and download the .tex file to compile.
 
 ### Tailored Resume Workflow
 
@@ -51,8 +51,8 @@ A Chrome extension that automatically generates tailored cover letters using Goo
   - A fully rewritten LaTeX document that keeps your template + section order
   - Skill-match scores (so you know which keywords are hitting)
   - Keyword gaps and suggested bullets (flagged for review)
-- We compile that LaTeX **inside the extension** using a WebAssembly build of TeX Live, show the PDF preview in the side panel, and let you download/share it instantly.
-- The tailored PDF + insights are cached per job, so revisiting the same job instantly reloads your last version.
+- You can download the generated LaTeX file and compile it using Overleaf or your local LaTeX installation.
+- The tailored LaTeX + insights are cached per job, so revisiting the same job instantly reloads your last version.
 
 The extension automatically detects job details and cover letter fields. Works with textarea, input, and contenteditable fields.
 
@@ -62,7 +62,6 @@ The extension automatically detects job details and cover letter fields. Works w
 - **Field Not Detected**: Click "Refresh" inside the side panel, ensure you're on the actual application form (not just the posting)
 - **Job Details Missing**: Extension waits up to 15s for async content - try refreshing
 - **Extension Not Working**: Reload extension in `chrome://extensions/`, refresh page, check console (F12)
-- **Resume Compiler Errors**: Make sure you're uploading a valid PDF, then re-open the side panel to reinitialize the TeX Live engine. The compiler runs locally, so heavy resumes may take a few seconds on first load.
 
 ## Privacy & Security
 

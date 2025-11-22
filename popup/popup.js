@@ -18,8 +18,6 @@ class AutoFillerPopup {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     this.currentTab = tabs[0];
 
-    console.log('[LaTeX] Using LaTeX.Online API for server-side compilation');
-
     // Initialize UI
     this.setupEventListeners();
     await this.loadSavedData();
@@ -229,8 +227,6 @@ class AutoFillerPopup {
       document.head.appendChild(script);
     });
   }
-
-  // WASM compiler methods removed - now using LaTeX.Online API for server-side compilation
 
   async ensurePdfParserRuntime() {
     if (window.__autofillerPdfParserLoaded) {
@@ -507,22 +503,11 @@ class AutoFillerPopup {
         jobKey: this.getJobKey()
       };
 
-      // Try to compile LaTeX to PDF using WASM
-      console.log('[Resume] Attempting to compile LaTeX to PDF...');
-      try {
-        const pdfDataUrl = await this.compileLatex(this.generatedResume.latex);
-        this.generatedResume.pdfDataUrl = pdfDataUrl;
-        this.showResumePreview(pdfDataUrl, this.generatedResume);
-        await this.persistTailoredResume(this.generatedResume);
-        this.showMessage('Tailored resume generated! Preview ready.', 'success');
-      } catch (compileError) {
-        // Fallback: offer LaTeX download if compilation fails
-        console.warn('[Resume] PDF compilation failed, offering LaTeX download:', compileError);
-        this.showResumeInsights(this.generatedResume);
-        this.showLatexDownloadOption(this.generatedResume.latex);
-        await this.persistTailoredResume(this.generatedResume);
-        this.showMessage('Resume generated! Compile LaTeX manually (PDF compilation failed).', 'warning');
-      }
+      // Offer LaTeX download
+      console.log('[Resume] Offering LaTeX download...');
+      this.showResumeInsights(this.generatedResume);
+      this.showLatexDownloadOption(this.generatedResume.latex);
+      this.showMessage('Resume generated! Download the .tex file to compile.', 'success');
     } catch (error) {
       console.error('Error generating tailored resume:', error);
       this.showMessage(`Resume error: ${error.message}`, 'error');
@@ -538,42 +523,6 @@ class AutoFillerPopup {
     generateButton.disabled = show;
   }
 
-  // Test compilation method removed - not needed with LaTeX.Online API
-
-  async compileLatex(latexContent) {
-    console.log('[LaTeX] Starting server-side compilation...');
-    console.log('[LaTeX] Input length:', latexContent.length, 'characters');
-    console.log('[LaTeX] First 200 chars:', latexContent.substring(0, 200));
-    console.log('[LaTeX] Last 200 chars:', latexContent.substring(latexContent.length - 200));
-
-    try {
-      // Send to background script to handle the API call
-      console.log('[LaTeX] Sending compilation request to background script...');
-
-      const response = await chrome.runtime.sendMessage({
-        action: 'compileLatex',
-        latex: latexContent
-      });
-
-      if (!response || !response.success) {
-        throw new Error(response?.error || 'LaTeX compilation failed');
-      }
-
-      console.log('[LaTeX] Compilation successful! PDF size:', response.pdfDataUrl.length, 'bytes');
-      return response.pdfDataUrl;
-    } catch (error) {
-      console.error('[LaTeX] Compilation error:', error);
-      throw new Error(`LaTeX compilation failed: ${error.message || 'Unknown error'}`);
-    }
-  }
-
-  showResumePreview(pdfUrl, resumeData) {
-    const frame = document.getElementById('resumePreviewFrame');
-    frame.src = pdfUrl;
-    document.getElementById('resumePreviewContainer').style.display = 'flex';
-    document.getElementById('downloadResumeButton').disabled = false;
-    this.updateResumeInsights(resumeData);
-  }
 
   showLatexDownloadOption(latexContent) {
     const container = document.getElementById('resumePreviewContainer');
@@ -706,22 +655,8 @@ class AutoFillerPopup {
   }
 
   downloadTailoredResume() {
-    if (!this.generatedResume?.pdfDataUrl) {
-      this.showMessage('No tailored resume to download', 'error');
-      return;
-    }
-    const link = document.createElement('a');
-    link.href = this.generatedResume.pdfDataUrl;
-    link.download = this.getDownloadFileName();
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-
-  getDownloadFileName() {
-    const company = (this.jobDetails.company || 'company').replace(/\s+/g, '_');
-    const title = (this.jobDetails.title || 'role').replace(/\s+/g, '_');
-    return `AutoFiller_${company}_${title}_resume.pdf`;
+    // LaTeX download is now handled by showLatexDownloadOption
+    this.showMessage('Use the download button in the preview area', 'info');
   }
 
   showPreview(coverLetter) {
@@ -816,14 +751,12 @@ class AutoFillerPopup {
   }
 
   async persistTailoredResume(resumeData) {
-    if (!resumeData?.pdfDataUrl) return;
     const payload = {
       jobKey: resumeData.jobKey || this.getJobKey(),
       company: this.jobDetails.company || '',
       title: this.jobDetails.title || '',
       generatedAt: resumeData.generatedAt || Date.now(),
       latex: resumeData.latex,
-      pdfBase64: this.extractBase64(resumeData.pdfDataUrl),
       highlights: resumeData.highlights || [],
       keywordGaps: resumeData.keywordGaps || [],
       bulletSuggestions: resumeData.bulletSuggestions || []
@@ -847,33 +780,21 @@ class AutoFillerPopup {
         jobKey: this.currentJobKey
       });
       if (response?.success && response.resume) {
-        const dataUrl = this.buildDataUrl(response.resume.pdfBase64);
         this.generatedResume = {
           latex: response.resume.latex || '',
           highlights: response.resume.highlights || [],
           keywordGaps: response.resume.keywordGaps || [],
           bulletSuggestions: response.resume.bulletSuggestions || [],
-          pdfDataUrl: dataUrl,
           jobKey: this.currentJobKey,
           generatedAt: response.resume.generatedAt
         };
-        this.showResumePreview(dataUrl, this.generatedResume);
+        this.showResumeInsights(this.generatedResume);
+        this.showLatexDownloadOption(this.generatedResume.latex);
         this.showMessage('Loaded your last tailored resume for this job', 'info');
       }
     } catch (error) {
       console.error('Error loading stored resume:', error);
     }
-  }
-
-  extractBase64(dataUrl) {
-    if (!dataUrl) return '';
-    const parts = dataUrl.split(',');
-    return parts.length > 1 ? parts[1] : '';
-  }
-
-  buildDataUrl(base64) {
-    if (!base64) return '';
-    return `data:application/pdf;base64,${base64}`;
   }
 
 
@@ -950,32 +871,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Expose for debugging in console
   window.autofillerDebug = {
-    popup,
-    testCompile: async (latex) => {
-      if (!latex) {
-        latex = `\\documentclass{article}
-\\begin{document}
-Hello from LaTeX.Online API test!
-\\end{document}`;
-      }
-      console.log('[Debug] Testing LaTeX.Online API compilation...');
-      try {
-        const result = await popup.compileLatex(latex);
-        console.log('[Debug] ✅ Success! PDF URL length:', result.length);
-        console.log('[Debug] PDF preview:', result.substring(0, 100) + '...');
-        return result;
-      } catch (error) {
-        console.error('[Debug] ❌ Failed:', error);
-        throw error;
-      }
-    },
-    getStatus: () => ({
-      compilationMethod: 'LaTeX.Online API (server-side)',
-      apiEndpoint: 'https://latexonline.cc/compile',
-      internetRequired: true
-    })
+    popup
   };
 
   console.log('[AutoFiller] Debug tools available via window.autofillerDebug');
-  console.log('[AutoFiller] Try: autofillerDebug.testCompile() or autofillerDebug.getStatus()');
 });

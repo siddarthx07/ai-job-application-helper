@@ -25,24 +25,24 @@
 ### Step 3: Pin & Use
 1. Click the puzzle piece 🧩 in Chrome toolbar
 2. Pin the "AutoFiller" extension
-3. Go to a Greenhouse job application page
+3. Go to a job application page
 4. Click the AutoFiller icon – Chrome opens our full-height side panel on the right
-5. Keep the panel open while you browse, upload your PDF resume once, and then generate letters or tailored resumes!
+5. Keep the panel open while you browse, upload your PDF resume once, and then generate cover letters or tailored resumes!
 
 ## ⚡ Quick Test
-1. Go to any Greenhouse job posting
+1. Go to any job posting page
 2. Click the AutoFiller extension icon
-3. You should see "Ready (Greenhouse)" status and job details detected
+3. You should see job details detected and the extension ready to use
 
 ## 🔧 Troubleshooting
-- **"API: Not configured"**: Add your Gemini API key to `config/config.js`
-- **"Unsupported site"**: Navigate to a Greenhouse job page
+- **"API: Not configured"**: Add your Gemini API key to `.env` and run `npm run build`
+- **"Unsupported site"**: Navigate to a job application page
 - **Extension not visible**: Check `chrome://extensions/` and make sure it's enabled
 
 ## 📝 Usage Flow
 1. **Upload Resume**: Click "Upload Resume PDF" in the side panel (file stays local)
-2. **Find Job**: Go to a Greenhouse job application page  
+2. **Find Job**: Go to a job application page
 3. **Cover Letter**: Click "Generate Cover Letter" inside the panel, then "Fill Form"
-4. **Tailored Resume**: Click "Generate Tailored Resume" to preview/download a 1-page LaTeX PDF customized for that job
+4. **Tailored Resume**: Click "Generate Tailored Resume" to download a LaTeX file customized for that job
 
 That's it! You're ready to auto-generate tailored cover letters! 🎉

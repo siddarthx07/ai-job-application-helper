@@ -614,67 +614,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  if (request.action === 'compileLatex') {
-    console.log('[Background] Received LaTeX compilation request');
-    compileLatexToPdf(request.latex)
-      .then(pdfDataUrl => {
-        console.log('[Background] Compilation successful');
-        sendResponse({ success: true, pdfDataUrl });
-      })
-      .catch(error => {
-        console.error('[Background] Compilation failed:', error);
-        sendResponse({ success: false, error: error.message });
-      });
-    return true;
-  }
-
 });
-
-// LaTeX compilation function using local server
-async function compileLatexToPdf(latexContent) {
-  console.log('[Background] Starting LaTeX compilation...');
-  console.log('[Background] LaTeX content length:', latexContent.length);
-
-  // Local server URL (change port if you modified server.js)
-  const LOCAL_SERVER_URL = 'http://localhost:3000/compile';
-
-  try {
-    console.log('[Background] Sending request to local LaTeX server...');
-
-    const response = await fetch(LOCAL_SERVER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        latex: latexContent
-      })
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      console.error('[Background] Compilation error:', result.error);
-      if (result.log) {
-        console.error('[Background] LaTeX log:', result.log);
-      }
-      throw new Error(result.error || 'LaTeX compilation failed');
-    }
-
-    console.log('[Background] Compilation successful! PDF size:', result.size, 'bytes');
-    return result.pdfDataUrl;
-
-  } catch (error) {
-    console.error('[Background] LaTeX compilation failed:', error);
-
-    // Provide helpful error message if server is not running
-    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-      throw new Error('Cannot connect to local LaTeX server. Make sure the server is running on http://localhost:3000. See latex-server/README.md for setup instructions.');
-    }
-
-    throw new Error(`Failed to compile LaTeX: ${error.message}`);
-  }
-}
 
 // Open the side panel when the user clicks the toolbar icon
 chrome.action.onClicked.addListener(async (tab) => {

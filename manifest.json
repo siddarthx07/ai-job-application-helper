@@ -58,7 +58,6 @@
     {
       "resources": [
         "assets/*",
-        "vendor/texlive/*",
         "vendor/pdfjs/*"
       ],
       "matches": [
