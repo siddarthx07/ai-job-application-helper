@@ -154,9 +154,9 @@ class AutoFillerPopup {
   showPageWarning() {
     this.updateStatus('error', 'Unsupported site');
     document.getElementById('jobInfo').innerHTML = `
-      <div style="text-align: center; color: #dc3545; padding: 20px;">
+      <div class="warning-box">
         <p><strong>⚠️ Please open a job application page in your browser</strong></p>
-        <p style="font-size: 12px; margin-top: 8px;">
+        <p style="font-size: 12px; margin-top: 8px; color: var(--text-muted);">
           AutoFiller works on most public job postings that load in a regular browser tab.
         </p>
       </div>
@@ -295,15 +295,18 @@ class AutoFillerPopup {
       updatedEl.textContent = this.formatTimestamp(this.resumeFileMeta.uploadedAt);
       if (this.resumeFileMeta.hasExtractedText === false) {
         statusEl.textContent = '⚠️ Text extraction failed';
-        statusEl.style.color = '#dc3545';
+        statusEl.className = 'save-status text-danger';
+        statusEl.style.color = '';
       } else {
         statusEl.textContent = '';
+        statusEl.className = 'save-status';
         statusEl.style.color = '';
       }
     } else {
       nameEl.textContent = 'No resume uploaded';
       updatedEl.textContent = '';
       statusEl.textContent = '';
+      statusEl.className = 'save-status';
       statusEl.style.color = '';
     }
   }
@@ -361,9 +364,11 @@ class AutoFillerPopup {
 
         const statusEl = document.getElementById('resumeUploadStatus');
         statusEl.textContent = '✅ Uploaded';
+        statusEl.className = 'save-status text-success';
         statusEl.style.color = '';
         setTimeout(() => {
           statusEl.textContent = '';
+          statusEl.className = 'save-status';
         }, 2500);
       } catch (error) {
         console.error('Failed to store resume file', error);
@@ -803,31 +808,22 @@ class AutoFillerPopup {
   }
 
   showMessage(message, type = 'info') {
-    // Create temporary message element
-    const messageDiv = document.createElement('div');
-    messageDiv.style.cssText = `
-      position: fixed;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 10px 15px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      z-index: 1000;
-      max-width: 300px;
-      text-align: center;
-      ${type === 'success' ? 'background: #d4edda; color: #155724; border: 1px solid #c3e6cb;' : ''}
-      ${type === 'error' ? 'background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;' : ''}
-      ${type === 'warning' ? 'background: #fff3cd; color: #856404; border: 1px solid #ffeeba;' : ''}
-      ${type === 'info' ? 'background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;' : ''}
-    `;
-    messageDiv.textContent = message;
-
-    document.body.appendChild(messageDiv);
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.classList.add('visible');
+    });
 
     setTimeout(() => {
-      messageDiv.remove();
+      toast.classList.remove('visible');
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
     }, 3000);
   }
 

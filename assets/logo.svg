@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Background: Royal Blue with rounded corners -->
+  <rect width="128" height="128" rx="28" fill="#2563eb"/>
+  
+  <!-- Document Icon -->
+  <path d="M82 32H46c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h36c4.4 0 8-3.6 8-8V40c0-4.4-3.6-8-8-8z" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M82 32v16H90" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+  
+  <!-- Spark/Smart Symbol -->
+  <path d="M56 66l6 6 14-14" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M92 24l4 8 8 4-8 4-4 8-4-8-8-4 8-4z" fill="white" opacity="0.9"/>
+</svg>

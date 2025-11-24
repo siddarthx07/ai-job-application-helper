@@ -509,6 +509,7 @@ NOTES:
       throw new Error('Resume text unavailable. Re-upload a text-based PDF before tailoring.');
     }
     const resumeText = resumeFile.text;
+    const totalStart = Date.now();
 
     const prompt = this.buildResumePrompt(jobDetails, options);
     const parts = [
@@ -528,6 +529,7 @@ NOTES:
     }];
 
     try {
+      const fetchStart = Date.now();
       const response = await fetch(`${this.baseUrl}${this.model}:generateContent?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
@@ -542,6 +544,7 @@ NOTES:
           }
         })
       });
+      console.log(`[Resume] Gemini fetch time: ${Date.now() - fetchStart} ms (status ${response.status})`);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -557,6 +560,7 @@ NOTES:
         throw new Error('Model response did not include a LaTeX document.');
       }
 
+      console.log(`[Resume] Tailored resume end-to-end: ${Date.now() - totalStart} ms`);
       return parsed;
     } catch (error) {
       console.error('Error generating tailored resume:', error);

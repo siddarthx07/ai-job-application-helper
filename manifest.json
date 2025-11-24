@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "AutoFiller - Smart Cover Letter Generator",
-  "version": "1.0.0",
-  "description": "Auto-generate tailored cover letters using AI for job applications",
+  "name": "ApplySmart",
+  "version": "1.1.0",
+  "description": "Smart AI cover letter generator and resume tailor for job applications",
   
   "permissions": [
     "activeTab",
@@ -34,7 +34,7 @@
   ],
   
   "action": {
-    "default_title": "AutoFiller",
+    "default_title": "ApplySmart",
     "default_icon": {
       "16": "assets/icon16.png",
       "32": "assets/icon32.png",
