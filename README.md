@@ -1,4 +1,4 @@
-# AutoFiller - Smart Cover Letter Generator
+# AutoFiller - ai-job-application-helper
 
 A Chrome extension that automatically generates tailored resumes & cover letters using Google's Gemini AI for job applications on Greenhouse, Workday, Lever, and most job application pages.
 
